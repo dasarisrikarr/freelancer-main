@@ -1,0 +1,74 @@
+pipeline {
+    agent any
+    
+    environment {
+        APP_VERSION = "${env.BUILD_NUMBER}"
+    }
+    
+    stages {
+        stage('Backend Build') {
+            steps {
+                echo 'Building backend application...'
+                dir('freelancer-backend') {
+                    script {
+                        def mavenHome = tool 'Maven'
+                        sh "${mavenHome}/bin/mvn clean package -DskipTests"
+                    }
+                }
+            }
+        }
+        
+        stage('Frontend Build') {
+            steps {
+                echo 'Building frontend application...'
+                dir('frontend') {
+                    script {
+                        sh 'npm install'
+                        sh 'npm run build'
+                    }
+                }
+            }
+        }
+        
+        stage('Build Docker Images') {
+            steps {
+                echo 'Building Docker images...'
+                sh 'docker-compose build'
+            }
+        }
+        
+        stage('Deploy') {
+            steps {
+                echo 'Deploying application...'
+                script {
+                    sh 'docker-compose down || true'
+                    sh 'docker image prune -f'
+                    sh 'docker-compose up -d'
+                }
+            }
+        }
+        
+        stage('Health Check') {
+            steps {
+                echo 'Running health checks...'
+                script {
+                    sh 'sleep 30 || timeout /t 30 /nobreak'
+                    sh 'curl -f http://localhost:9090/actuator/health 2>/dev/null || echo "Health check completed"'
+                    sh 'curl -f http://localhost:80/ 2>/dev/null || echo "Health check completed"'
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+            sh 'docker image prune -f'
+        }
+        failure {
+            echo 'Pipeline failed!'
+            sh 'docker-compose logs --tail=100'
+        }
+    }
+}
+

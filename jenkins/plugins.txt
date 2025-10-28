@@ -1,0 +1,38 @@
+# Required Jenkins Plugins
+# Install these plugins through Jenkins UI: Manage Jenkins → Manage Plugins
+
+# Core Plugins
+pipeline-stage-view
+workflow-aggregator
+
+# Git Plugin
+git
+
+# Docker Plugins
+docker-workflow
+docker-plugin
+
+# Build Tools
+maven-plugin
+nodejs
+
+# Pipeline Plugins
+pipeline-github
+pipeline-stage-view
+pipeline-build-step
+pipeline-utility-steps
+
+# Email/Notifications
+email-ext
+slack
+
+# UI Plugins
+blueocean
+mattermost
+
+# Optional but Recommended
+credentials-binding
+timestamper
+build-timeout
+warnings-ng
+

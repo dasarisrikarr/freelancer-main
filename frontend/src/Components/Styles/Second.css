@@ -1,0 +1,137 @@
+/* General Styles */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #121212; /* Black background */
+  color: #ffffff; /* White text */
+}
+
+.job-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #1e1e1e; /* Darker black for content container */
+  border-radius: 10px;
+}
+
+/* Header */
+.job-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.job-header h1 {
+  font-size: 2.5rem;
+  color: #ffcc00; /* Gold color for the title */
+}
+
+.job-header h3 {
+  font-size: 1.5rem;
+  margin: 10px 0;
+}
+
+.job-location {
+  font-size: 1rem;
+  font-style: italic;
+  color: #cccccc; /* Light gray for location */
+}
+
+/* Main Content */
+.job-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.job-details,
+.job-description,
+.job-responsibilities,
+.job-benefits {
+  background-color: #2a2a2a; /* Slightly lighter black for sections */
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.job-details h2,
+.job-description h2,
+.job-responsibilities h2,
+.job-benefits h2 {
+  font-size: 1.5rem;
+  color: #ffcc00;
+  margin-bottom: 10px;
+}
+
+.job-details p,
+.job-description p,
+.job-responsibilities p,
+.job-benefits p {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #e0e0e0; /* Light gray for text */
+}
+
+/* Apply Button */
+.apply-button {
+  background-color: #ff5722; /* Vibrant orange */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+/* Popup */
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8); /* Dark overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background-color: #2a2a2a;
+  padding: 30px;
+  border-radius: 10px;
+  width: 400px;
+  text-align: center;
+}
+
+.popup-content h2 {
+  font-size: 1.5rem;
+  color: #ffcc00;
+  margin-bottom: 20px;
+}
+
+.popup-content input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: 1px solid #555;
+  background-color: #121212;
+  color: #ffffff;
+}
+
+.close-popup {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.submit-button {
+  background-color: #4caf50; /* Green button */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin-top: 10px;
+  cursor: pointer;
+}
