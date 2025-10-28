@@ -4,8 +4,6 @@ pipeline {
     environment {
         DOCKER_REGISTRY = 'localhost:5000' // Optional: local registry
         APP_VERSION = "${env.BUILD_NUMBER}"
-        DOCKER_USERNAME = credentials('docker-credentials')
-        DOCKER_PASSWORD = credentials('docker-password')
     }
     
     stages {
@@ -22,7 +20,11 @@ pipeline {
                 dir('freelancer-backend') {
                     script {
                         def mavenHome = tool 'Maven'
-                        sh "${mavenHome}/bin/mvn clean package -DskipTests"
+                        if (isUnix()) {
+                            sh "${mavenHome}/bin/mvn clean package -DskipTests"
+                        } else {
+                            bat "\"${mavenHome}\\bin\\mvn.cmd\" clean package -DskipTests"
+                        }
                     }
                 }
             }
@@ -41,8 +43,13 @@ pipeline {
                 echo 'Building frontend application...'
                 dir('frontend') {
                     script {
-                        sh 'npm install'
-                        sh 'npm run build'
+                        if (isUnix()) {
+                            sh 'npm install'
+                            sh 'npm run build'
+                        } else {
+                            bat 'npm install'
+                            bat 'npm run build'
+                        }
                     }
                 }
             }
@@ -64,7 +71,11 @@ pipeline {
                         dir('freelancer-backend') {
                             script {
                                 def mavenHome = tool 'Maven'
-                                sh "${mavenHome}/bin/mvn test"
+                                if (isUnix()) {
+                                    sh "${mavenHome}/bin/mvn test"
+                                } else {
+                                    bat "\"${mavenHome}\\bin\\mvn.cmd\" test"
+                                }
                             }
                         }
                     }
@@ -74,7 +85,13 @@ pipeline {
                     steps {
                         echo 'Running frontend linting...'
                         dir('frontend') {
-                            sh 'npm run lint || true' // Continue even if lint fails
+                            script {
+                                if (isUnix()) {
+                                    sh 'npm run lint || true' // Continue even if lint fails
+                                } else {
+                                    bat 'cmd /c npm run lint || exit /b 0' // Continue even if lint fails
+                                }
+                            }
                         }
                     }
                 }
@@ -84,7 +101,13 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 echo 'Building Docker images...'
-                sh 'docker-compose build'
+                script {
+                    if (isUnix()) {
+                        sh 'docker compose build || docker-compose build'
+                    } else {
+                        bat 'cmd /c docker compose build || docker-compose build'
+                    }
+                }
             }
         }
         
@@ -93,13 +116,25 @@ pipeline {
                 echo 'Deploying application...'
                 script {
                     // Stop existing containers
-                    sh 'docker-compose down || true'
+                    if (isUnix()) {
+                        sh 'docker compose down || docker-compose down || true'
+                    } else {
+                        bat 'cmd /c docker compose down || docker-compose down || exit /b 0'
+                    }
                     
                     // Remove old images to free up space
-                    sh 'docker image prune -f'
+                    if (isUnix()) {
+                        sh 'docker image prune -f'
+                    } else {
+                        bat 'docker image prune -f'
+                    }
                     
                     // Start new containers
-                    sh 'docker-compose up -d'
+                    if (isUnix()) {
+                        sh 'docker compose up -d || docker-compose up -d'
+                    } else {
+                        bat 'cmd /c docker compose up -d || docker-compose up -d'
+                    }
                 }
             }
         }
@@ -109,13 +144,25 @@ pipeline {
                 echo 'Running health checks...'
                 script {
                     // Wait for services to be ready
-                    sh 'sleep 30 || timeout /t 30 /nobreak'
+                    if (isUnix()) {
+                        sh 'sleep 30'
+                    } else {
+                        bat 'timeout /t 30 /nobreak'
+                    }
                     
                     // Check backend health (gracefully fail)
-                    sh 'curl -f http://localhost:9090/actuator/health 2>/dev/null || echo "Backend health endpoint not available"'
+                    if (isUnix()) {
+                        sh 'curl -fsS http://localhost:9090/actuator/health || echo "Backend health endpoint not available"'
+                    } else {
+                        bat 'cmd /c curl.exe -f http://localhost:9090/actuator/health || echo Backend health endpoint not available'
+                    }
                     
                     // Check frontend (gracefully fail)
-                    sh 'curl -f http://localhost:80/ 2>/dev/null || echo "Frontend not accessible"'
+                    if (isUnix()) {
+                        sh 'curl -fsS http://localhost/ || echo "Frontend not accessible"'
+                    } else {
+                        bat 'cmd /c curl.exe -f http://localhost:80/ || echo Frontend not accessible'
+                    }
                 }
             }
         }
@@ -125,17 +172,29 @@ pipeline {
         success {
             echo 'Pipeline completed successfully!'
             // Clean up old images
-            sh 'docker image prune -f'
+            script {
+                if (isUnix()) {
+                    sh 'docker image prune -f'
+                } else {
+                    bat 'docker image prune -f'
+                }
+            }
         }
         failure {
             echo 'Pipeline failed!'
             // Keep logs for debugging
-            sh 'docker-compose logs --tail=100'
+            script {
+                if (isUnix()) {
+                    sh 'docker compose logs --tail=100 || docker-compose logs --tail=100 || true'
+                } else {
+                    bat 'cmd /c docker compose logs --tail=100 || docker-compose logs --tail=100'
+                }
+            }
         }
         always {
             // Archive artifacts
             archiveArtifacts artifacts: '**/*.jar', allowEmptyArchive: true
-            publishTestResults testResultsPattern: '**/test-results.xml'
+            junit testResults: '**/test-results.xml', allowEmptyResults: true
         }
     }
 }
